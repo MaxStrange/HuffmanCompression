@@ -4,6 +4,7 @@
 #include <iostream>
 #include <string>
 #include "FVPair.h"
+#include <string>
 
 using namespace std;
 
@@ -49,31 +50,33 @@ uint32_t ParsedEncodedFile::getNumberOfUncompressedChars() const
 
 bool ParsedEncodedFile::Parse(ifstream & encoded)
 {
-	/*
-	Ask prof Dimpsey how to parse the file into the right sized ints
-	!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-	*/
+	vector<char> allLines(istreambuf_iterator<char>(encoded), (istreambuf_iterator<char>()));
 
+	//bool fileValid = false;
+	//vector<string> lines;
+	//string line;
+	//while (getline(encoded, line))
+	//{
+	//	lines.push_back(line);
 
-	bool fileValid = false;
-	vector<string> lines;
-	string line;
-	while (getline(encoded, line))
-	{
-		lines.push_back(line);
+	//	fileValid = true;
+	//}
 
-		fileValid = true;
-	}
+	//if (!fileValid)
+	//	return false;
+	//else
+	//	encoded.close();
 
-	if (!fileValid)
-		return false;
-	else
-		encoded.close();
-
-	string allLines;
-	for (unsigned int i = 0; i < lines.size(); i++)
-		allLines += lines.at(i);
-
+	//string allLines;
+	//for (unsigned int i = 0; i < lines.size(); i++)
+	//{
+	//	allLines += lines.at(i);
+	//	static const uint8_t linefeed = 10;
+	//	
+	//	//if this is not the last line, the line separator is due to a \n, which is just an ascii 10
+	//	if (i + 1 != lines.size())
+	//		allLines += linefeed;
+	//}
 
 	//Now have the whole compressed file in one long string
 

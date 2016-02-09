@@ -45,9 +45,7 @@ uint8_t BufferWriter::Write(uint8_t numberOfBits, uint32_t bits, ostream &outStr
 		//now take the "numberOfBitsToWrite" msbs of the lsbs
 		uint32_t bitsToWrite = lsbs;
 		if (numberOfBits > numberOfBitsOpen)
-			bitsToWrite >>= numberOfBitsToWrite;
-		//if (numberOfBitsToWrite > numberOfBitsOpen)
-		//	bitsToWrite >>= numberOfBitsToWrite;
+			bitsToWrite >>= (numberOfBits - numberOfBitsOpen);
 		
 		uint8_t numberOfSlotsToShift = (SLOTS_IN_BUFFER - this->indexOfFirstEmptyBitSlot) - numberOfBitsToWrite;
 		bitsToWrite = bitsToWrite << numberOfSlotsToShift;

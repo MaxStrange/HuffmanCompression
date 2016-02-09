@@ -85,7 +85,12 @@ bool Encoder::createFrequencyTableFromFile(ifstream & f, vector<FVPair>& frequen
 
 vector<FVPair> Encoder::parse(ifstream &f)
 {
-	vector<uint8_t> chars = parseToAsciiChars(f);
+//	vector<uint8_t> chars = parseToAsciiChars(f);
+	vector<char> allLines(istreambuf_iterator<char>(f), (istreambuf_iterator<char>()));
+	vector<uint8_t> chars;
+	for (unsigned int i = 0; i < allLines.size(); i++)
+		chars.push_back(allLines.at(i));
+
 	this->inputFileAsAsciiChars = chars;
 
 	uint32_t asciiCharFrequencies[256];
@@ -120,8 +125,16 @@ vector<uint8_t> Encoder::parseToAsciiChars(ifstream & f) const
 
 	string line;
 	bool fileValid = false;
+	unsigned int lineNumber = 0;
 	while (getline(f, line))
 	{
+		//ascii \n character
+		static const uint8_t linefeed = 10;
+		if (lineNumber > 0)
+			chars.push_back(linefeed);
+
+		lineNumber++;
+
 		for (unsigned int i = 0; i < line.size(); i++)
 			chars.push_back(line.at(i));
 

@@ -30,14 +30,14 @@ int main(int argc, char *argv[])
 
 	string name = "C:\\Users\\Max\\Desktop\\toEncode.txt";
 	ifstream f;
-	f.open(name);
+	f.open(name, ios::in | ios::binary);
 	Encoder encoder;
 	encoder.Encode(f, name);
 
 
 	string oName = name + ".huf";
 	ifstream o;
-	o.open(oName);
+	o.open(oName, ios::in | ios::binary);
 	Decoder decoder;
 	decoder.Decode(o, oName);
 
