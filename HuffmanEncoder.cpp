@@ -6,6 +6,7 @@
 #include <fstream>
 
 #include "Encoder.h"
+#include "Decoder.h"
 
 #include "Heap.h"
 
@@ -32,6 +33,13 @@ int main(int argc, char *argv[])
 	f.open(name);
 	Encoder encoder;
 	encoder.Encode(f, name);
+
+
+	string oName = name + ".huf";
+	ifstream o;
+	o.open(oName);
+	Decoder decoder;
+	decoder.Decode(o, oName);
 
 
 	return 0;

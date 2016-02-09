@@ -126,11 +126,14 @@ HuffmanTree & HuffmanTree::operator=(const HuffmanTree & other)
 
 
 
-uint8_t HuffmanTree::Decode(vector<uint8_t> bits) const
+bool HuffmanTree::Decode(vector<uint8_t> bits, uint8_t *asciiChar) const
 {
 	Node *whereWeAre = this->root;
 	for (unsigned int i = 0; i < bits.size(); i++)
 	{
+		if (whereWeAre == nullptr)
+			return false;
+		
 		if (bits.at(i) == 0)
 		{
 			whereWeAre = whereWeAre->left;
@@ -141,7 +144,15 @@ uint8_t HuffmanTree::Decode(vector<uint8_t> bits) const
 		}
 	}
 
-	return whereWeAre->value->value;
+	if (!((whereWeAre->left == nullptr) && (whereWeAre->right == nullptr)))//leaf node
+	{
+		return false;
+	}
+	else
+	{
+		*asciiChar = (whereWeAre->value->value);
+		return true;
+	}
 }
 
 Encoding HuffmanTree::getEncoding()

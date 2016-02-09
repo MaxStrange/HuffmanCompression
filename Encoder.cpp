@@ -23,40 +23,24 @@ Encoder::~Encoder()
 void Encoder::Encode(ifstream &f, const string &fName)
 {
 	vector<FVPair> frequencyTable;
-	try
+	bool fileValid = createFrequencyTableFromFile(f, frequencyTable);
+	if (fileValid)
 	{
-		frequencyTable = parse(f);
+		string encodedFileName = fName + ".huf";
+		ofstream encoded(encodedFileName);
+
+		writeFrequencyTableToFile(frequencyTable, encoded);
+		writeNumberOfUncompressedCharsToFile(encoded);
+		writeCompressedCharsToFile(frequencyTable, encoded);
+
+		encoded << endl;
+		encoded.close();
 	}
-	catch (exception ex)
+	else
 	{
 		cout << "File is missing or invalid." << endl;
+		return;
 	}
-
-	string encodedFileName = fName + ".huf";
-	ofstream encoded(encodedFileName);
-
-	writeFrequencyTableToFile(frequencyTable, encoded);
-
-	uint32_t numberOfUncompressedCharsInFile = this->inputFileAsAsciiChars.size();
-	encoded << numberOfUncompressedCharsInFile;
-
-	PriorityQueue<FVPair> pq;
-	pq.AddEach(frequencyTable);
-
-	HuffmanTree huff = buildHuffmanTree(pq);
-	Encoding encoding = huff.getEncoding();
-	BufferWriter writer;
-	for (unsigned int i = 0; i < this->inputFileAsAsciiChars.size(); i++)
-	{
-		uint8_t c = this->inputFileAsAsciiChars.at(i);
-		uint8_t numberOfBitsToWrite = encoding.encoding[c].numberOfBits;
-		uint32_t bitsToWrite = encoding.encoding[c].bits;
-		writer.Write(numberOfBitsToWrite, bitsToWrite, encoded);
-	}
-
-	writer.FlushBufferToFile(encoded);
-	encoded << endl;
-	encoded.close();
 }
 
 
@@ -85,6 +69,18 @@ HuffmanTree Encoder::buildHuffmanTree(PriorityQueue<FVPair>& pq) const
 	HuffmanTree done = hufQueue.Remove();
 
 	return done;
+}
+
+bool Encoder::createFrequencyTableFromFile(ifstream & f, vector<FVPair>& frequencyTable)
+{
+	try
+	{
+		frequencyTable = parse(f);
+	}
+	catch (exception ex)
+	{
+		return false;
+	}
 }
 
 vector<FVPair> Encoder::parse(ifstream &f)
@@ -138,15 +134,34 @@ vector<uint8_t> Encoder::parseToAsciiChars(ifstream & f) const
 	return chars;
 }
 
+void Encoder::writeCompressedCharsToFile(vector<FVPair> frequencyTable, ostream & encoded) const
+{
+	PriorityQueue<FVPair> pq;
+	pq.AddEach(frequencyTable);
+
+	HuffmanTree huff = buildHuffmanTree(pq);
+	Encoding encoding = huff.getEncoding();
+	BufferWriter writer;
+	for (unsigned int i = 0; i < this->inputFileAsAsciiChars.size(); i++)
+	{
+		uint8_t c = this->inputFileAsAsciiChars.at(i);
+		uint8_t numberOfBitsToWrite = encoding.encoding[c].numberOfBits;
+		uint32_t bitsToWrite = encoding.encoding[c].bits;
+		writer.Write(numberOfBitsToWrite, bitsToWrite, encoded);
+	}
+
+	writer.FlushBufferToFile(encoded);
+}
+
 void Encoder::writeFrequencyTableToFile(vector<FVPair> frequencyTable, ostream & outStream) const
 {
-	//reconstruct the full ascii table with associated frequencies
 	uint16_t frequenciesOfAsciiChars[256];
 	for (unsigned int i = 0; i < 256; i++)
 	{
 		uint8_t asciiChar = i;
 		
 		uint16_t frequency = 0;
+		//fetch the frequency that corresponds to this char
 		for (unsigned int j = 0; j < frequencyTable.size(); j++)
 		{
 			if (frequencyTable.at(j).value == i)
@@ -155,7 +170,34 @@ void Encoder::writeFrequencyTableToFile(vector<FVPair> frequencyTable, ostream &
 				break;
 			}
 		}
+
+		uint8_t numberOfDigitsInFrequency = 0;
+		//calculate the number of digits in this frequency
+		uint16_t f = frequency;
+		do
+		{
+			numberOfDigitsInFrequency++;
+			f /= 10;
+		} while (f != 0);
 		
-		outStream << frequency;
+		outStream << numberOfDigitsInFrequency;
+		outStream << frequency;//converts to ascii digits when printing - so 32 turns into '3''2' in the file
 	}
+}
+
+void Encoder::writeNumberOfUncompressedCharsToFile(ofstream & encoded) const
+{
+	uint8_t numberOfDigitsInUncompressedCharsInFile = 0;
+	//calculate the number of digits in this frequency
+	uint32_t numberOfUncompressedCharsInFile = this->inputFileAsAsciiChars.size();
+	do
+	{
+		numberOfDigitsInUncompressedCharsInFile++;
+		numberOfUncompressedCharsInFile /= 10;
+	} while (numberOfUncompressedCharsInFile != 0);
+	
+	encoded << numberOfDigitsInUncompressedCharsInFile;
+
+	numberOfUncompressedCharsInFile = this->inputFileAsAsciiChars.size();
+	encoded << numberOfUncompressedCharsInFile;
 }

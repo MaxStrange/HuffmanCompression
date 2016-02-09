@@ -23,8 +23,11 @@ private:
 	vector<uint8_t> inputFileAsAsciiChars;
 
 	HuffmanTree buildHuffmanTree(PriorityQueue<FVPair> &pq) const;
+	bool createFrequencyTableFromFile(ifstream &f, vector<FVPair> &frequencyTable);
 	vector<FVPair> parse(ifstream &f);
 	vector<uint8_t> parseToAsciiChars(ifstream &f) const;
-	void writeFrequencyTableToFile(vector<FVPair> frequencyTable, ostream &outStream) const;
+	void writeCompressedCharsToFile(vector<FVPair> frequencyTable, ostream &encoded) const;
+	void writeFrequencyTableToFile(vector<FVPair> frequencyTable, ostream &encoded) const;
+	void writeNumberOfUncompressedCharsToFile(ofstream &encoded) const;
 };
 

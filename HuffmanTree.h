@@ -27,7 +27,7 @@ public:
 	bool operator==(const HuffmanTree &other) const;
 	HuffmanTree& operator=(const HuffmanTree &other);
 
-	uint8_t Decode(vector<uint8_t> bits) const;
+	bool Decode(vector<uint8_t> bits, uint8_t *asciiChar) const;
 	Encoding getEncoding();
 
 private:

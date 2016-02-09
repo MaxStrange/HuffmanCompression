@@ -4,6 +4,9 @@
 #include <vector>
 #include <fstream>
 #include "HuffmanTree.h"
+#include "ParsedEncodedFile.h"
+#include "PriorityQueue.h"
+#include "FVPair.h"
 
 using namespace std;
 
@@ -18,92 +21,76 @@ Decoder::~Decoder()
 
 void Decoder::Decode(ifstream &f, const string & fName) const
 {
-	vector<uint8_t> bits;
-	try
+	ParsedEncodedFile parsedFile;
+	bool fileValid = parsedFile.Parse(f);
+	if (fileValid)
 	{
-		bits = parse(f);		//bitsream -> each byte in the vector is a single bit from the encoded file - either a zero or one (not in ascii)
+		PriorityQueue<FVPair> pq;
+		pq.AddEach(parsedFile.getFrequencyTable());
+
+		HuffmanTree huff = buildHuffmanTree(pq);
+		ofstream decoded(fName + ".puff");
+		
+		vector<uint8_t> uncompressedAsciiChars = decompressCharacters(huff, parsedFile);
+		for (unsigned int i = 0; i < uncompressedAsciiChars.size(); i++)
+			decoded << uncompressedAsciiChars.at(i);
+		decoded << endl;
+		decoded.close();
 	}
-	catch (exception ex)
+	else
 	{
-		cout << "File is missing or not valid." << endl;
+		cout << "File is invalid or missing." << endl;
 		return;
 	}
-
-	HuffmanTree huff = reconstructHuffmanTree(bits);
-	uint32_t numberOfSymbols = buildIntFromBits(bits);
-
-	ofstream puff(fName + ".puff");
-	while (!bits.empty())
-	{
-		vector<uint8_t> encodedCharacter = reconstructCharacter(bits);
-		uint8_t decodedCharacter = huff.Decode(encodedCharacter);
-		puff << decodedCharacter;
-	}
-
-	puff << endl;
-	puff.close();
 }
 
 
 
-uint32_t Decoder::buildIntFromBits(vector<uint8_t> &bits) const
+HuffmanTree Decoder::buildHuffmanTree(PriorityQueue<FVPair>& pq) const
 {
-	//Removes the first 32 "bits" from the vector to construct a 32 bit unsigned integer and returns that integer.
-	uint32_t number = 0;
-
-	for (unsigned int i = 31; i >= 0; i++)
+	PriorityQueue<HuffmanTree> hufQueue;
+	while (!pq.isEmpty())
 	{
-		uint8_t bit = bits.at(i);
-		bits.erase(bits.begin());
-
-		number += bit * pow(2, i);
+		FVPair next = pq.Remove();
+		uint8_t token = next.value;
+		uint16_t tokenFrequency = next.frequency;
+		HuffmanTree h = HuffmanTree(token, tokenFrequency);
+		hufQueue.Add(&h);
 	}
 
-	return number;
+	while (hufQueue.getLength() > 1)
+	{
+		HuffmanTree h1 = hufQueue.Remove();
+		HuffmanTree h2 = hufQueue.Remove();
+		HuffmanTree h3 = h1 + h2;
+		hufQueue.Add(&h3);
+	}
+
+	HuffmanTree done = hufQueue.Remove();
+
+	return done;
 }
 
-vector<uint8_t> Decoder::parse(ifstream & f) const
+vector<uint8_t> Decoder::decompressCharacters(const HuffmanTree & tree, const ParsedEncodedFile & encoded) const
 {
-	//Returns all the bits in order from the file. By "bits" I mean that each uint8_t is either a 0 or 1 in value - 
-	//not in ascii.
+	vector<uint8_t> asciiChars;
 
-	vector<uint8_t> chars;
-
-	string line;
-	bool fileValid = false;
-	while (getline(f, line))
+	vector<uint8_t> bits = encoded.getBits();
+	vector<uint8_t> bitsToCheck;
+	unsigned int i = 0;
+	while (i < bits.size())
 	{
-		for (unsigned int i = 0; i < line.size(); i++)
-			chars.push_back(line.at(i));
+		bitsToCheck.push_back(bits.at(i));
 
-		fileValid = true;
-	}
-
-	if (!fileValid)
-		throw exception("File not found or invalid.");
-	
-	vector<uint8_t> bits;
-	for (unsigned int i = 0; i < chars.size(); i++)
-	{
-		for (unsigned int j = 0; j < 8; j++)
+		uint8_t asciiChar = 0;
+		if (tree.Decode(bitsToCheck, &asciiChar))
 		{
-			uint8_t ch = chars.at(i);
-			uint8_t bit = (ch >> j) & 0x01;
-			bits.push_back(bit);
+			bitsToCheck.clear();
+			asciiChars.push_back(asciiChar);
 		}
+
+		i++;
 	}
 
-	return bits;
-}
-
-vector<uint8_t> Decoder::reconstructCharacter(vector<uint8_t> &bits) const
-{
-	//TODO : figure out how to do this
-	return vector<uint8_t>();
-}
-
-HuffmanTree Decoder::reconstructHuffmanTree(vector<uint8_t> &bits) const
-{
-	//Removes the first however many "bits" from the vector and builds the tree
-	return HuffmanTree(5, 5);
+	return asciiChars;
 }

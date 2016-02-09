@@ -3,6 +3,8 @@
 #include <vector>
 #include <fstream>
 #include "HuffmanTree.h"
+#include "ParsedEncodedFile.h"
+#include "PriorityQueue.h"
 
 using namespace std;
 
@@ -16,9 +18,7 @@ public:
 
 
 private:
-	uint32_t buildIntFromBits(vector<uint8_t> &bits) const;
-	vector<uint8_t> parse(ifstream &f) const;
-	vector<uint8_t> reconstructCharacter(vector<uint8_t> &bits) const;
-	HuffmanTree reconstructHuffmanTree(vector<uint8_t> &bits) const;
+	HuffmanTree buildHuffmanTree(PriorityQueue<FVPair>& pq) const;
+	vector<uint8_t> decompressCharacters(const HuffmanTree &tree, const ParsedEncodedFile &encoded) const;
 };
 

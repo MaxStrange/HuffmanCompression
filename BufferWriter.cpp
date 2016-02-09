@@ -32,19 +32,22 @@ uint8_t BufferWriter::Write(uint8_t numberOfBits, uint32_t bits, ostream &outStr
 	7. Go to step 2, but with the lsbs from step 6
 	*/
 
-	uint8_t numberOfBitsOpen = SLOTS_IN_BUFFER - this->indexOfFirstEmptyBitSlot;
 	
 	while (numberOfBits > 0)
 	{
-		uint32_t lsbsMask = ~(0xFFFFFFFF << numberOfBits);
+		uint8_t numberOfBitsOpen = SLOTS_IN_BUFFER - this->indexOfFirstEmptyBitSlot;
+
+		uint32_t lsbsMask = ~(0xFF << numberOfBits);
 		uint32_t lsbs = bits & lsbsMask;
 
 		uint8_t numberOfBitsToWrite = (numberOfBitsOpen < numberOfBits) ? numberOfBitsOpen : numberOfBits;
-		numberOfBits -= numberOfBitsToWrite;
+
 		//now take the "numberOfBitsToWrite" msbs of the lsbs
 		uint32_t bitsToWrite = lsbs;
-		if (numberOfBitsToWrite > numberOfBitsOpen)
+		if (numberOfBits > numberOfBitsOpen)
 			bitsToWrite >>= numberOfBitsToWrite;
+		//if (numberOfBitsToWrite > numberOfBitsOpen)
+		//	bitsToWrite >>= numberOfBitsToWrite;
 		
 		uint8_t numberOfSlotsToShift = (SLOTS_IN_BUFFER - this->indexOfFirstEmptyBitSlot) - numberOfBitsToWrite;
 		bitsToWrite = bitsToWrite << numberOfSlotsToShift;
@@ -54,6 +57,8 @@ uint8_t BufferWriter::Write(uint8_t numberOfBits, uint32_t bits, ostream &outStr
 
 		if (this->indexOfFirstEmptyBitSlot >= SLOTS_IN_BUFFER)
 			writeBufferToFile(outStream);
+
+		numberOfBits -= numberOfBitsToWrite;
 	}
 
 	return numberOfBitsToReturn;
@@ -61,7 +66,8 @@ uint8_t BufferWriter::Write(uint8_t numberOfBits, uint32_t bits, ostream &outStr
 
 void BufferWriter::writeBufferToFile(ostream &outStream)
 {
+	//This operator seems to convert the integer to a string (each digit being a byte), which is why we have to use 8bit buffer
 	outStream << this->bitBuffer;
-	this->bitBuffer = 0x00000000;
+	this->bitBuffer = 0x00;
 	this->indexOfFirstEmptyBitSlot = 0;
 }
