@@ -42,6 +42,11 @@ vector<FVPair> ParsedEncodedFile::getFrequencyTable() const
 	return frequencyTable;
 }
 
+uint32_t ParsedEncodedFile::getNumberOfUncompressedChars() const
+{
+	return this->numberOfUncompressedChars;
+}
+
 bool ParsedEncodedFile::Parse(ifstream & encoded)
 {
 	/*

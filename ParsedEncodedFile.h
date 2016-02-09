@@ -14,6 +14,7 @@ public:
 
 	vector<uint8_t> getBits() const;
 	vector<FVPair> getFrequencyTable() const;
+	uint32_t getNumberOfUncompressedChars() const;
 
 	bool Parse(ifstream &encoded);
 

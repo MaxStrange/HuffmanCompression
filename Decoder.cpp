@@ -29,7 +29,9 @@ void Decoder::Decode(ifstream &f, const string & fName) const
 		pq.AddEach(parsedFile.getFrequencyTable());
 
 		HuffmanTree huff = buildHuffmanTree(pq);
-		ofstream decoded(fName + ".puff");
+		string name = fName + ".puff";
+		ofstream decoded(name);
+		
 		
 		vector<uint8_t> uncompressedAsciiChars = decompressCharacters(huff, parsedFile);
 		for (unsigned int i = 0; i < uncompressedAsciiChars.size(); i++)
@@ -90,6 +92,8 @@ vector<uint8_t> Decoder::decompressCharacters(const HuffmanTree & tree, const Pa
 		}
 
 		i++;
+		if (asciiChars.size() >= encoded.getNumberOfUncompressedChars())
+			break;
 	}
 
 	return asciiChars;
