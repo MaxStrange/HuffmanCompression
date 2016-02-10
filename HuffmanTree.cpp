@@ -1,6 +1,9 @@
 #include "stdafx.h"
 
 #include "HuffmanTree.h"
+#include <fstream>
+#include <bitset>
+#include <iostream>
 
 using namespace std;
 
@@ -15,6 +18,33 @@ HuffmanTree::HuffmanTree()
 HuffmanTree::HuffmanTree(const HuffmanTree & toCopy)
 {
 	*this = toCopy;
+}
+
+HuffmanTree::HuffmanTree(const FrequencyTable & toEncode)
+{
+	//Construct a priority queue of huffman trees (each one being just a single fv pair)
+	PriorityQueue<HuffmanTree> hufQueue;
+	for (unsigned int i = 0; i < toEncode.size(); i++)
+	{
+		FVPair next = toEncode.at(i);
+		uint8_t token = next.value;
+		uint16_t tokenFrequency = next.frequency;
+		HuffmanTree h = HuffmanTree(token, tokenFrequency);
+		hufQueue.Add(&h);
+	}
+
+	//Build one big HuffmanTree from the priority queue
+	while (hufQueue.getLength() > 1)
+	{
+		HuffmanTree h1 = hufQueue.Remove();
+		HuffmanTree h2 = hufQueue.Remove();
+		HuffmanTree h3 = h1 + h2;
+		hufQueue.Add(&h3);
+	}
+
+	HuffmanTree done = hufQueue.Remove();
+
+	*this = done;
 }
 
 HuffmanTree::HuffmanTree(uint8_t rootValue, uint32_t rootWeight)
@@ -155,10 +185,10 @@ bool HuffmanTree::Decode(vector<uint8_t> bits, uint8_t *asciiChar) const
 	}
 }
 
-Encoding HuffmanTree::getEncoding()
+Encoding HuffmanTree::getEncoding(bool forEncoding)
 {
 	if (!this->encodingIsValid)
-		buildEncoding();
+		buildEncoding(forEncoding);
 
 	return this->encoding;
 }
@@ -166,10 +196,25 @@ Encoding HuffmanTree::getEncoding()
 
 
 
-void HuffmanTree::buildEncoding()
+void HuffmanTree::buildEncoding(bool forEncoding)
 {
 	vector<uint8_t> bits;
 	buildEncodingHelper(this->root, bits);
+
+	ofstream f;
+	if (forEncoding)
+		f.open(name);
+	else
+		f.open(name2);
+
+	for (unsigned int i = 0; i < 256; i++)
+	{
+		if (this->encoding.encoding[i].numberOfBits == 0)
+			continue;
+		else
+			f << "'" << (uint8_t)i << "' : " << bitset<16>(this->encoding.encoding[i].bits) 
+			<< " :" << (int)this->encoding.encoding[i].numberOfBits << endl;
+	}
 
 	this->encodingIsValid = true;
 }

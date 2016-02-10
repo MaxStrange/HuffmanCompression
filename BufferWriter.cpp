@@ -1,5 +1,9 @@
 #include "stdafx.h"
 #include "BufferWriter.h"
+#include <iostream>
+#include <bitset>
+
+using namespace std;
 
 
 BufferWriter::BufferWriter()

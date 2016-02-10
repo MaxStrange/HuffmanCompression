@@ -9,6 +9,7 @@
 #include "Decoder.h"
 
 #include "Heap.h"
+#include "BufferWriter.h"
 
 using namespace std;
 
@@ -27,13 +28,11 @@ int main(int argc, char *argv[])
 	//	encoder.Encode(f, name);
 	//}
 
-
 	string name = "C:\\Users\\Max\\Desktop\\toEncode.txt";
 	ifstream f;
 	f.open(name, ios::in | ios::binary);
 	Encoder encoder;
 	encoder.Encode(f, name);
-
 
 	string oName = name + ".huf";
 	ifstream o;

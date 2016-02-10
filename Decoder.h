@@ -18,7 +18,8 @@ public:
 
 
 private:
-	HuffmanTree buildHuffmanTree(PriorityQueue<FVPair>& pq) const;
+	void decodeInputFile(ParsedEncodedFile &parsedFile) const;
 	vector<uint8_t> decompressCharacters(const HuffmanTree &tree, const ParsedEncodedFile &encoded) const;
+	void writeToFile(const vector<uint8_t> &uncompressedAsciiChars, ofstream &f) const;
 };
 
