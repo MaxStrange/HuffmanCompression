@@ -28,17 +28,19 @@ int main(int argc, char *argv[])
 	//	encoder.Encode(f, name);
 	//}
 
-	string name = "C:\\Users\\Max\\Desktop\\toEncode.txt";
+	string name = "C:\\Users\\Max\\Desktop\\Encoder\\toEncode.txt";
 	ifstream f;
 	f.open(name, ios::in | ios::binary);
 	Encoder encoder;
 	encoder.Encode(f, name);
+	f.close();
 
-	string oName = name + ".huf";
-	ifstream o;
-	o.open(oName, ios::in | ios::binary);
+	string inName = name + ".huf";
+	ifstream in;
+	in.open(inName, ios::in | ios::binary);
 	Decoder decoder;
-	decoder.Decode(o, oName);
+	decoder.Decode(in, inName);
+	in.close();
 
 
 	return 0;

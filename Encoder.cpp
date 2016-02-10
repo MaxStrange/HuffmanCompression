@@ -48,6 +48,7 @@ bool Encoder::createFrequencyTableFromFile(ifstream & f, FrequencyTable& frequen
 	try
 	{
 		frequencyTable = parseIntoFrequencyTable(f);
+		frequencyTable.Log(encoderFrequencyTableLogName);
 		return true;
 	}
 	catch (exception ex)
@@ -59,7 +60,7 @@ bool Encoder::createFrequencyTableFromFile(ifstream & f, FrequencyTable& frequen
 void Encoder::encodeFile(const FrequencyTable &frequencyTable, ifstream & f, const string & fName)
 {
 	string encodedFileName = fName + ".huf";
-	ofstream encoded(encodedFileName);
+	ofstream encoded(encodedFileName, ios::out | ios::binary);
 
 	writeFrequencyTableToFile(frequencyTable, encoded);
 	writeNumberOfUncompressedCharsToFile(frequencyTable, encoded);
@@ -106,6 +107,7 @@ FrequencyTable Encoder::parseIntoFrequencyTable(ifstream &f)
 void Encoder::writeCompressedCharsToFile(const FrequencyTable &frequencyTable, ostream & encoded)
 {
 	HuffmanTree huff(frequencyTable);
+	huff.Log(huffTreeLogFileName);
 	Encoding encoding = huff.getEncoding(true);
 	BufferWriter writer;
 	for (unsigned int i = 0; i < this->inputFileAsAsciiChars.size(); i++)

@@ -24,6 +24,8 @@ public:
 
 private:
 	vector<uint8_t> inputFileAsAsciiChars;
+	const string encoderFrequencyTableLogName = "C:\\Users\\Max\\Desktop\\Encoder\\encoderFrqTbl.txt";
+	const string huffTreeLogFileName = "C:\\Users\\Max\\Desktop\\Encoder\\encoderHuffTree.txt";
 	HuffmanTree tree;
 
 	bool createFrequencyTableFromFile(ifstream &f, FrequencyTable &frequencyTable);

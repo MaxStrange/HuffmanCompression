@@ -17,6 +17,7 @@ public:
 
 	FVPair at(size_t i) const;
 	uint8_t calculateNumberOfDigits(uint16_t frequency) const;
+	void Log(string fileName) const;
 	void push_back(const FVPair &item);
 	size_t size() const;
 	vector<FVPair> toVector() const;

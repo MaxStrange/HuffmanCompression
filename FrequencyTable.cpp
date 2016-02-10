@@ -1,5 +1,6 @@
 #include "stdafx.h"
 #include "FrequencyTable.h"
+#include <fstream>
 
 
 FrequencyTable::FrequencyTable()
@@ -52,6 +53,15 @@ uint8_t FrequencyTable::calculateNumberOfDigits(uint16_t frequency) const
 	} while (f != 0);
 
 	return numberOfDigits;
+}
+
+void FrequencyTable::Log(string fileName) const
+{
+	ofstream f(fileName);
+	for (unsigned int i = 0; i < this->table.size(); i++)
+	{
+		f << "Value: " << this->table.at(i).value << " : " << this->table.at(i).frequency << endl;
+	}
 }
 
 void FrequencyTable::push_back(const FVPair &item)

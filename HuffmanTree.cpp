@@ -193,6 +193,12 @@ Encoding HuffmanTree::getEncoding(bool forEncoding)
 	return this->encoding;
 }
 
+void HuffmanTree::Log(const string & fileName) const
+{
+	ofstream log(fileName);
+	logHelper(this->root, log, 0);
+}
+
 
 
 
@@ -305,5 +311,23 @@ bool HuffmanTree::equalsHelper(const Node * const subtree, const Node * const ot
 	else
 	{
 		return false;
+	}
+}
+
+void HuffmanTree::logHelper(const Node * const subtree, ofstream & logFile, int height) const
+{
+	if (subtree == nullptr)
+	{
+		return;
+	}
+	else if ((subtree->left == nullptr) && (subtree->right == nullptr))
+	{
+		logFile << "LEAF: Height: " << height << " , value: " << subtree->value->value << endl;
+	}
+	else
+	{
+		logFile << "NODE: Height: " << height << " , weight: " << subtree->value->weight << "; ";
+		logHelper(subtree->left, logFile, height + 1);
+		logHelper(subtree->right, logFile, height + 1);
 	}
 }

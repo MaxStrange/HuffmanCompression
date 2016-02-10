@@ -39,6 +39,7 @@ void Decoder::Decode(ifstream &f, const string & fName) const
 void Decoder::decodeInputFile(ParsedEncodedFile &parsedFile) const
 {
 	HuffmanTree huff(parsedFile.getFrequencyTable());
+	huff.Log(huffTreeLogFileName);
 	Encoding enc = huff.getEncoding(false);
 	string name = parsedFile.getFileName() + ".puff";
 	ofstream decoded(name);

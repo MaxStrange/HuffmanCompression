@@ -68,11 +68,25 @@ FrequencyTable ParsedEncodedFile::createFrequencyTable(const vector<string>& fre
 		table.push_back(fv);
 	}
 
+	table.Log(decoderFrequencyTableLogName);
 	return table;
+}
+
+void ParsedEncodedFile::logBits(vector<char>& wholeFile, unsigned int j)
+{
+	this->logFile = new ofstream(logFileName);
+	for (; j < wholeFile.size(); j++)
+	{
+		*this->logFile << wholeFile.at(j);
+	}
+	this->logFile->close();
+	delete this->logFile;
 }
 
 void ParsedEncodedFile::parseBits(vector<char>& wholeFile, unsigned int & j)
 {
+	logBits(wholeFile, j);
+
 	vector<uint8_t> bytes;
 	for (; j < wholeFile.size(); j++)
 	{

@@ -8,11 +8,14 @@ using namespace std;
 
 BufferWriter::BufferWriter()
 {
+	this->logFile = new ofstream(this->logFileName);
 }
 
 
 BufferWriter::~BufferWriter()
 {
+	this->logFile->close();
+	delete this->logFile;
 }
 
 uint8_t BufferWriter::FlushBufferToFile(ostream & outStream)
@@ -70,6 +73,7 @@ void BufferWriter::writeBufferToFile(ostream &outStream)
 {
 	//This operator seems to convert the integer to a string (each digit being a byte), which is why we have to use 8bit buffer
 	outStream << this->bitBuffer;
+	*this->logFile << this->bitBuffer;
 	this->bitBuffer = 0x00;
 	this->indexOfFirstEmptyBitSlot = 0;
 }

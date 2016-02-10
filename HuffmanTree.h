@@ -32,6 +32,7 @@ public:
 
 	bool Decode(vector<uint8_t> bits, uint8_t *asciiChar) const;
 	Encoding getEncoding(bool forEncoding);
+	void Log(const string &fileName) const;
 
 private:
 	struct Node
@@ -50,7 +51,8 @@ private:
 	Node* copySubtree(const Node * const toCopy) const;
 	void destroySubtree(Node *subtree);
 	bool equalsHelper(const Node * const subtree, const Node * const otherSubtree) const;
+	void logHelper(const Node * const subtree, ofstream &logFile, int height) const;
 
-	string name = "C:\\Users\\Max\\Desktop\\logEncoding.txt";
-	string name2 = "C:\\Users\\Max\\Desktop\\logDecoding.txt";
+	string name = "C:\\Users\\Max\\Desktop\\Encoder\\logEncoding.txt";
+	string name2 = "C:\\Users\\Max\\Desktop\\Encoder\\logDecoding.txt";
 };
