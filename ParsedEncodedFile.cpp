@@ -17,11 +17,6 @@ ParsedEncodedFile::~ParsedEncodedFile()
 {
 }
 
-vector<uint8_t> ParsedEncodedFile::getBits() const
-{
-	return this->bits;
-}
-
 string ParsedEncodedFile::getFileName() const
 {
 	return this->fileName;
@@ -40,12 +35,10 @@ uint32_t ParsedEncodedFile::getNumberOfUncompressedChars() const
 bool ParsedEncodedFile::Parse(ifstream & encoded, const string &fName)
 {
 	this->fileName = fName;
-	vector<char> allLines(istreambuf_iterator<char>(encoded), (istreambuf_iterator<char>()));
 
 	unsigned int j = 0;
-	parseFrequencyTable(allLines, j);
-	parseNumberOfChars(allLines, j);
-	parseBits(allLines, j);
+	parseFrequencyTable(encoded, j);
+	parseNumberOfChars(encoded, j);
 	
 	return true;
 }
@@ -72,76 +65,62 @@ FrequencyTable ParsedEncodedFile::createFrequencyTable(const vector<string>& fre
 	return table;
 }
 
-void ParsedEncodedFile::logBits(vector<char>& wholeFile, unsigned int j)
-{
-	this->logFile = new ofstream(logFileName);
-	for (; j < wholeFile.size(); j++)
-	{
-		*this->logFile << wholeFile.at(j);
-	}
-	this->logFile->close();
-	delete this->logFile;
-}
-
-void ParsedEncodedFile::parseBits(vector<char>& wholeFile, unsigned int & j)
-{
-	logBits(wholeFile, j);
-
-	vector<uint8_t> bytes;
-	for (; j < wholeFile.size(); j++)
-	{
-		bytes.push_back(wholeFile.at(j));
-	}
-
-	//convert the bytes into a vector of "bits" where each byte is a 0 or 1 from msb to lsb
-	for (unsigned int i = 0; i < bytes.size(); i++)
-	{
-		uint8_t byte = bytes.at(i);
-
-		for (int k = 7; k >= 0; k--)
-		{
-			uint8_t bit = (byte >> k) & 0x01;
-			this->bits.push_back(bit);
-		}
-	}
-}
-
-void ParsedEncodedFile::parseFrequencyTable(vector<char> &wholeFile, unsigned int &j)
+void ParsedEncodedFile::parseFrequencyTable(ifstream &encoded, unsigned int &j)
 {
 	//parse the table out of the file
-	vector<string> allFrequencies = parseTableFromFile(wholeFile, j);
+	vector<string> allFrequencies = parseTableFromFile(encoded, j);
 
 	//set up the frequency table object
 	this->frequencyTable = createFrequencyTable(allFrequencies);
 }
 
-void ParsedEncodedFile::parseNumberOfChars(vector<char> &wholeFile, unsigned int &j)
+void ParsedEncodedFile::parseNumberOfChars(ifstream &encoded, unsigned int &j)
 {
-	uint8_t numberOfDigitsInUncompressedChars = wholeFile.at(j);
+	char *numberOfDigitsInUncompressedChars = new char;
+	encoded.read(numberOfDigitsInUncompressedChars, 1);
+
 	unsigned int start = j;
 	j++;
 	string numberOfUncompressedChars;
-	for (; j <= start + numberOfDigitsInUncompressedChars; j++)
-		numberOfUncompressedChars += wholeFile.at(j);
-
+	for (; j <= start + *numberOfDigitsInUncompressedChars; j++)
+	{
+		char *nextDigit = new char;
+		encoded.read(nextDigit, 1);
+		numberOfUncompressedChars += *nextDigit;
+		delete nextDigit;
+		nextDigit = nullptr;
+	}
+		
 	this->numberOfUncompressedChars = stoi(numberOfUncompressedChars);
+
+	delete numberOfDigitsInUncompressedChars;
+	numberOfDigitsInUncompressedChars = nullptr;
 }
 
-vector<string> ParsedEncodedFile::parseTableFromFile(vector<char>& wholeFile, unsigned int & j)
+vector<string> ParsedEncodedFile::parseTableFromFile(ifstream &encoded, unsigned int & j)
 {
 	vector<string> allFrequenciesAsStrings;
 	j = 0;
 	for (unsigned int i = 0; i < 256; i++)
 	{
-		uint8_t numberOfDigitsInNextFrequency = wholeFile.at(j);
+		char *numberOfDigitsInNextFrequency = new char;
+		encoded.read(numberOfDigitsInNextFrequency, 1);
+
 		unsigned int start = j;
 		j++;
 		string frequency;
-		for (; j <= start + numberOfDigitsInNextFrequency; j++)
+		for (; j <= start + *numberOfDigitsInNextFrequency; j++)
 		{
-			frequency += wholeFile.at(j);
+			char *nextChar = new char;
+			encoded.read(nextChar, 1);
+			frequency += *nextChar;
+			delete nextChar;
+			nextChar = nullptr;
 		}
 		allFrequenciesAsStrings.push_back(frequency);
+
+		delete numberOfDigitsInNextFrequency;
+		numberOfDigitsInNextFrequency = nullptr;
 	}
 
 	return allFrequenciesAsStrings;

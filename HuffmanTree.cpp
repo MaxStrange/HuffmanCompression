@@ -209,9 +209,9 @@ void HuffmanTree::buildEncoding(bool forEncoding)
 
 	ofstream f;
 	if (forEncoding)
-		f.open(name);
+		f.open(name, ios::out | ios::binary);
 	else
-		f.open(name2);
+		f.open(name2, ios::out | ios::binary);
 
 	for (unsigned int i = 0; i < 256; i++)
 	{
@@ -222,6 +222,7 @@ void HuffmanTree::buildEncoding(bool forEncoding)
 			<< " :" << (int)this->encoding.encoding[i].numberOfBits << endl;
 	}
 
+	
 	this->encodingIsValid = true;
 }
 

@@ -23,16 +23,14 @@ public:
 
 
 private:
-	vector<uint8_t> inputFileAsAsciiChars;
 	const string encoderFrequencyTableLogName = "C:\\Users\\Max\\Desktop\\Encoder\\encoderFrqTbl.txt";
 	const string huffTreeLogFileName = "C:\\Users\\Max\\Desktop\\Encoder\\encoderHuffTree.txt";
 	HuffmanTree tree;
 
 	bool createFrequencyTableFromFile(ifstream &f, FrequencyTable &frequencyTable);
 	void encodeFile(const FrequencyTable &frequencyTable, ifstream &f, const string &fName);
-	void getAllCharsFromFile(ifstream &f);
 	FrequencyTable parseIntoFrequencyTable(ifstream &f);
-	void writeCompressedCharsToFile(const FrequencyTable &frequencyTable, ostream &encoded);
+	void writeCompressedCharsToFile(const FrequencyTable &frequencyTable, ostream &encoded, ifstream &original);
 	void writeFrequencyTableToFile(const FrequencyTable &frequencyTable, ostream &encoded) const;
 	void writeNumberOfUncompressedCharsToFile(const FrequencyTable &frequencyTable, ofstream &encoded) const;
 };

@@ -18,6 +18,11 @@ private:
 	const string logFileName = "C:\\Users\\Max\\Desktop\\Encoder\\encoderBitsLog.txt";
 	ofstream *logFile = nullptr;
 
+	const string hexLogFileName = "C:\\Users\\Max\\Desktop\\Encoder\\encoderHexLog.txt";
+	ofstream *hexLog = nullptr;
+
+	uint64_t lineCount = 0;
+
 	const uint8_t SLOTS_IN_BUFFER = 8;
 	uint8_t indexOfFirstEmptyBitSlot = 0;
 	uint8_t bitBuffer = 0;

@@ -37,20 +37,41 @@ uint16_t FrequencyTable::getFrequency(uint8_t asciiChar) const
 	return 0;
 }
 
+uint64_t FrequencyTable::getTotal() const
+{
+	uint64_t total = 0;
+	for (unsigned int i = 0; i < this->table.size(); i++)
+		total += this->table.at(i).frequency;
+	return total;
+}
+
 FVPair FrequencyTable::at(size_t i) const
 {
 	return this->table.at(i);
 }
 
-uint8_t FrequencyTable::calculateNumberOfDigits(uint16_t frequency) const
+vector<char> FrequencyTable::getDigits(uint64_t num) const
+{
+	vector<char> digits;
+	uint8_t numDigs = calculateNumberOfDigits(num);
+	for (int i = numDigs - 1; i >= 0; i--) {
+		int y = pow(10, i);
+		int z = num / y;
+		int x = num / (y * 10);
+		int digit = z - x * 10;
+		digits.push_back(digit);
+	}
+	return digits;
+}
+
+uint8_t FrequencyTable::calculateNumberOfDigits(uint64_t num) const
 {
 	uint8_t numberOfDigits = 0;
-	uint16_t f = frequency;
 	do
 	{
 		numberOfDigits++;
-		f /= 10;
-	} while (f != 0);
+		num /= 10;
+	} while (num != 0);
 
 	return numberOfDigits;
 }

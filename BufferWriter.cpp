@@ -8,7 +8,8 @@ using namespace std;
 
 BufferWriter::BufferWriter()
 {
-	this->logFile = new ofstream(this->logFileName);
+	this->logFile = new ofstream(this->logFileName, ios::out | ios::binary);
+	this->hexLog = new ofstream(this->hexLogFileName);
 }
 
 
@@ -16,13 +17,24 @@ BufferWriter::~BufferWriter()
 {
 	this->logFile->close();
 	delete this->logFile;
+
+	this->hexLog->close();
+	delete this->hexLog;
 }
 
 uint8_t BufferWriter::FlushBufferToFile(ostream & outStream)
 {
 	uint8_t numberOfBitsWritten = this->indexOfFirstEmptyBitSlot;
-	this->writeBufferToFile(outStream);
-	return numberOfBitsWritten;
+	if (numberOfBitsWritten == 0)
+	{
+		//don't bother flushing - there's nothing in the buffer
+		return 0;
+	}
+	else
+	{
+		this->writeBufferToFile(outStream);
+		return numberOfBitsWritten;
+	}
 }
 
 //Takes the least significant numberOfBits from bits and writes it to the file
@@ -74,6 +86,7 @@ void BufferWriter::writeBufferToFile(ostream &outStream)
 	//This operator seems to convert the integer to a string (each digit being a byte), which is why we have to use 8bit buffer
 	outStream << this->bitBuffer;
 	*this->logFile << this->bitBuffer;
+	*this->hexLog << (this->lineCount)++ << ". 0x" << hex << int(this->bitBuffer) << endl;
 	this->bitBuffer = 0x00;
 	this->indexOfFirstEmptyBitSlot = 0;
 }

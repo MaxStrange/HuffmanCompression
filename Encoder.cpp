@@ -64,25 +64,12 @@ void Encoder::encodeFile(const FrequencyTable &frequencyTable, ifstream & f, con
 
 	writeFrequencyTableToFile(frequencyTable, encoded);
 	writeNumberOfUncompressedCharsToFile(frequencyTable, encoded);
-	writeCompressedCharsToFile(frequencyTable, encoded);
+	writeCompressedCharsToFile(frequencyTable, encoded, f);
 	encoded.close();
-}
-
-void Encoder::getAllCharsFromFile(ifstream & f)
-{
-	vector<char> allCharsFromFile(istreambuf_iterator<char>(f), (istreambuf_iterator<char>()));
-
-	vector<uint8_t> chars;
-	for (unsigned int i = 0; i < allCharsFromFile.size(); i++)
-		chars.push_back(allCharsFromFile.at(i));
-
-	this->inputFileAsAsciiChars = chars;
 }
 
 FrequencyTable Encoder::parseIntoFrequencyTable(ifstream &f)
 {
-	getAllCharsFromFile(f);
-
 	/*
 	Create an array of ascii char frequencies with the array index being the ascii char itself
 	*/
@@ -93,10 +80,19 @@ FrequencyTable Encoder::parseIntoFrequencyTable(ifstream &f)
 		asciiCharFrequencies[i] = 0;
 
 	//fill the array
-	for (unsigned int i = 0; i < this->inputFileAsAsciiChars.size(); i++)
+	f.seekg(0, f.end);
+	uint64_t fileLength = f.tellg();
+	f.seekg(0, f.beg);
+	for (unsigned int i = 0; i < fileLength; i++)
 	{
-		uint8_t c = this->inputFileAsAsciiChars.at(i);
+		char *nextAsciiChar = new char;
+		f.read(nextAsciiChar, 1);
+		
+		uint8_t c = *nextAsciiChar;
 		asciiCharFrequencies[c] += 1;
+
+		delete nextAsciiChar;
+		nextAsciiChar = nullptr;
 	}
 
 	FrequencyTable table(asciiCharFrequencies);
@@ -104,15 +100,27 @@ FrequencyTable Encoder::parseIntoFrequencyTable(ifstream &f)
 	return table;
 }
 
-void Encoder::writeCompressedCharsToFile(const FrequencyTable &frequencyTable, ostream & encoded)
+void Encoder::writeCompressedCharsToFile(const FrequencyTable &frequencyTable, ostream &encoded, ifstream &original)
 {
+	uint64_t numChars = 0;
+
 	HuffmanTree huff(frequencyTable);
 	huff.Log(huffTreeLogFileName);
 	Encoding encoding = huff.getEncoding(true);
 	BufferWriter writer;
-	for (unsigned int i = 0; i < this->inputFileAsAsciiChars.size(); i++)
+
+	original.seekg(0, original.end);
+	uint64_t fileLength = original.tellg();
+	original.seekg(0, original.beg);
+	for (unsigned int i = 0; i < fileLength; i++)
 	{
-		uint8_t nextAsciiCharFromFile = this->inputFileAsAsciiChars.at(i);
+		numChars++;
+		char *c = new char;
+		original.read(c, 1);
+		uint8_t nextAsciiCharFromFile = *c;
+		delete c;
+		c = nullptr;
+
 		uint8_t numberOfBitsToWrite = encoding.encoding[nextAsciiCharFromFile].numberOfBits;
 		uint32_t bitsToWrite = encoding.encoding[nextAsciiCharFromFile].bits;
 		writer.Write(numberOfBitsToWrite, bitsToWrite, encoded);		
@@ -136,8 +144,16 @@ void Encoder::writeFrequencyTableToFile(const FrequencyTable &frequencyTable, os
 
 void Encoder::writeNumberOfUncompressedCharsToFile(const FrequencyTable &frequencyTable, ofstream & encoded) const
 {
-	uint32_t numberOfUncompressedCharsInFile = this->inputFileAsAsciiChars.size();
+	uint32_t numberOfUncompressedCharsInFile = frequencyTable.getTotal();
 	uint8_t numberOfDigitsInUncompressedCharsInFile = frequencyTable.calculateNumberOfDigits(numberOfUncompressedCharsInFile);
+
+	//char *numDigs = new char;
+	//*numDigs = numberOfDigitsInUncompressedCharsInFile;
+	//encoded.write(numDigs, 1);
+	//delete numDigs;
+	//numDigs = nullptr;
+
+	//vector<char> digits = frequencyTable.getDigits(numberOfUncompressedCharsInFile);
 
 	encoded << numberOfDigitsInUncompressedCharsInFile;
 	encoded << numberOfUncompressedCharsInFile;
