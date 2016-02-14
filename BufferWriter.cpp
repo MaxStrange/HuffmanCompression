@@ -83,10 +83,22 @@ uint8_t BufferWriter::Write(uint8_t numberOfBits, uint32_t bits, ostream &outStr
 
 void BufferWriter::writeBufferToFile(ostream &outStream)
 {
-	//This operator seems to convert the integer to a string (each digit being a byte), which is why we have to use 8bit buffer
+
+	/*for (int i = 3; i >= 0; i--)
+	{
+		char p = (bitBuffer >> (8 * i)) & 0x000000ff;
+		outStream.write(&p, 1);
+		logFile->write(&p, 1);
+	}*/
+
 	outStream << this->bitBuffer;
+	
+	
+	
 	*this->logFile << this->bitBuffer;
-	*this->hexLog << (this->lineCount)++ << ". 0x" << hex << int(this->bitBuffer) << endl;
+	*this->hexLog << dec << (this->lineCount)++ << ". 0x" << hex << int(this->bitBuffer) << endl;
+
+
 	this->bitBuffer = 0x00;
 	this->indexOfFirstEmptyBitSlot = 0;
 }

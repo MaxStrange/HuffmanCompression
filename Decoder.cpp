@@ -7,6 +7,7 @@
 #include "ParsedEncodedFile.h"
 #include "PriorityQueue.h"
 #include "FVPair.h"
+#include "CStopWatch.h"
 
 using namespace std;
 
@@ -72,7 +73,7 @@ void Decoder::decodeInputFile(ParsedEncodedFile &parsedFile, ifstream &encoded)
 	huff.Log(huffTreeLogFileName);
 	Encoding enc = huff.getEncoding(false);
 	string name = parsedFile.getFileName() + ".puff";
-	ofstream decoded(name);
+	ofstream decoded(name, ios::out | ios::binary);
 	decompressCharacters(huff, encoded, parsedFile.getNumberOfUncompressedChars(), decoded);
 	decoded.close();
 }
@@ -93,9 +94,10 @@ void Decoder::decompressCharacters(HuffmanTree &tree, ifstream &encoded, uint32_
 	uint8_t smallestNumberOfBitsToEncodeACharacter = getSmallestNumberOfBitsToEncode(tree.getEncoding(false));
 
 
-
-
-	while (numberDecodedSoFar != numberOfUncompressedChars)
+	CStopWatch watch;
+	
+	
+	while (numberDecodedSoFar < numberOfUncompressedChars)
 	{//for each byte in the file
 
 		/*
@@ -103,6 +105,12 @@ void Decoder::decompressCharacters(HuffmanTree &tree, ifstream &encoded, uint32_
 		*/
 		if ((pos != end) && (bits.size() < largestNumberOfBitsToEncodeACharacter))
 		{
+			//TODO : Collect four bytes per read rather than just one
+
+
+
+
+
 			char *nextByte = new char;
 			encoded.read(nextByte, 1);
 			pos++;
@@ -113,7 +121,7 @@ void Decoder::decompressCharacters(HuffmanTree &tree, ifstream &encoded, uint32_
 
 			uint8_t logByte = *nextByte;
 			*this->logFile << logByte;
-			*this->hexLog << (this->lineCount)++ << ". 0x" << hex << int(logByte) << endl;
+			*this->hexLog << dec << (this->lineCount)++ << ". 0x" << hex << int(logByte) << endl;
 			delete nextByte;
 			nextByte = nullptr;
 		}
@@ -124,7 +132,6 @@ void Decoder::decompressCharacters(HuffmanTree &tree, ifstream &encoded, uint32_
 
 		if (bitsToCheck.size() < smallestNumberOfBitsToEncodeACharacter)
 			continue;
-
 		bool successfullyDecoded = tree.Decode(bitsToCheck, &asciiChar);
 		if (successfullyDecoded)
 		{
@@ -133,7 +140,14 @@ void Decoder::decompressCharacters(HuffmanTree &tree, ifstream &encoded, uint32_
 			i = 0;
 			bitsToCheck.clear();
 			numberDecodedSoFar++;
-			decoded << asciiChar;
+
+
+
+			//TODO : Collect four bytes before writing
+
+			char blah = asciiChar;
+			char *c = &blah;
+			decoded.write(c, 1);
 		}
 	}
 }
