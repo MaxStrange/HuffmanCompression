@@ -8,18 +8,22 @@ using namespace std;
 
 BufferWriter::BufferWriter()
 {
+#if defined ENABLE_LOGS
 	this->logFile = new ofstream(this->logFileName, ios::out | ios::binary);
 	this->hexLog = new ofstream(this->hexLogFileName);
+#endif
 }
 
 
 BufferWriter::~BufferWriter()
 {
+#if defined ENABLE_LOGS
 	this->logFile->close();
 	delete this->logFile;
 
 	this->hexLog->close();
 	delete this->hexLog;
+#endif
 }
 
 uint8_t BufferWriter::FlushBufferToFile(ostream & outStream)
@@ -88,16 +92,18 @@ void BufferWriter::writeBufferToFile(ostream &outStream)
 	{
 		char p = (bitBuffer >> (8 * i)) & 0x000000ff;
 		outStream.write(&p, 1);
+#if defined ENABLE_LOGS
 		logFile->write(&p, 1);
+#endif
 	}*/
 
 	outStream << this->bitBuffer;
 	
 	
-	
+#if defined ENABLE_LOGS	
 	*this->logFile << this->bitBuffer;
 	*this->hexLog << dec << (this->lineCount)++ << ". 0x" << hex << int(this->bitBuffer) << endl;
-
+#endif
 
 	this->bitBuffer = 0x00;
 	this->indexOfFirstEmptyBitSlot = 0;

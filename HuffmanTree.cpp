@@ -156,6 +156,36 @@ HuffmanTree & HuffmanTree::operator=(const HuffmanTree & other)
 
 
 
+bool HuffmanTree::Decode(uint32_t bits, uint8_t numberOfBits, uint8_t * asciiChar) const
+{
+	Node *whereWeAre = this->root;
+	for (int i = numberOfBits - 1; i >= 0; i--)
+	{
+		if (whereWeAre == nullptr)
+		{
+			return false;
+		}
+		else if ((bits >> i) & 0x01)
+		{
+			whereWeAre = whereWeAre->right;
+		}
+		else
+		{
+			whereWeAre = whereWeAre->left;
+		}
+	}
+
+	if (!((whereWeAre->left == nullptr) && (whereWeAre->right == nullptr)))//leaf node
+	{
+		return false;
+	}
+	else
+	{
+		*asciiChar = (whereWeAre->value->value);
+		return true;
+	}
+}
+
 bool HuffmanTree::Decode(vector<uint8_t> bits, uint8_t *asciiChar) const
 {
 	Node *whereWeAre = this->root;
@@ -193,12 +223,13 @@ Encoding HuffmanTree::getEncoding(bool forEncoding)
 	return this->encoding;
 }
 
+#if defined ENABLE_LOGS
 void HuffmanTree::Log(const string & fileName) const
 {
 	ofstream log(fileName);
 	logHelper(this->root, log, 0);
 }
-
+#endif
 
 
 
@@ -207,6 +238,7 @@ void HuffmanTree::buildEncoding(bool forEncoding)
 	vector<uint8_t> bits;
 	buildEncodingHelper(this->root, bits);
 
+#if defined ENABLE_LOGS
 	ofstream f;
 	if (forEncoding)
 		f.open(name, ios::out | ios::binary);
@@ -221,7 +253,7 @@ void HuffmanTree::buildEncoding(bool forEncoding)
 			f << "'" << (uint8_t)i << "' : " << bitset<16>(this->encoding.encoding[i].bits) 
 			<< " :" << (int)this->encoding.encoding[i].numberOfBits << endl;
 	}
-
+#endif
 	
 	this->encodingIsValid = true;
 }
@@ -315,6 +347,7 @@ bool HuffmanTree::equalsHelper(const Node * const subtree, const Node * const ot
 	}
 }
 
+#if defined ENABLE_LOGS
 void HuffmanTree::logHelper(const Node * const subtree, ofstream & logFile, int height) const
 {
 	if (subtree == nullptr)
@@ -332,3 +365,4 @@ void HuffmanTree::logHelper(const Node * const subtree, ofstream & logFile, int 
 		logHelper(subtree->right, logFile, height + 1);
 	}
 }
+#endif

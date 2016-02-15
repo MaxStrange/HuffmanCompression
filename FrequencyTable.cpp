@@ -37,12 +37,19 @@ uint16_t FrequencyTable::getFrequency(uint8_t asciiChar) const
 	return 0;
 }
 
-uint64_t FrequencyTable::getTotal() const
+uint32_t FrequencyTable::getTotal() const
 {
-	uint64_t total = 0;
-	for (unsigned int i = 0; i < this->table.size(); i++)
-		total += this->table.at(i).frequency;
-	return total;
+	//uint32_t total = 0;
+	//for (unsigned int i = 0; i < this->table.size(); i++)
+	//	total += this->table.at(i).frequency;
+//	return total;
+
+	return this->total;
+}
+
+void FrequencyTable::setTotal(uint32_t total)
+{
+	this->total = total;
 }
 
 FVPair FrequencyTable::at(size_t i) const
@@ -76,6 +83,7 @@ uint8_t FrequencyTable::calculateNumberOfDigits(uint64_t num) const
 	return numberOfDigits;
 }
 
+#if defined ENABLE_LOGS
 void FrequencyTable::Log(string fileName) const
 {
 	ofstream f(fileName);
@@ -84,6 +92,7 @@ void FrequencyTable::Log(string fileName) const
 		f << "Value: " << this->table.at(i).value << " : " << this->table.at(i).frequency << endl;
 	}
 }
+#endif
 
 void FrequencyTable::push_back(const FVPair &item)
 {

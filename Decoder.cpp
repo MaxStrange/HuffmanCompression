@@ -13,18 +13,21 @@ using namespace std;
 
 Decoder::Decoder()
 {
+#if defined ENABLE_LOGS
 	this->logFile = new ofstream(this->bitsLogFileName, ios::out | ios::binary);
 	this->hexLog = new ofstream(this->hexLogFileName);
+#endif
 }
-
 
 Decoder::~Decoder()
 {
+#if defined ENABLE_LOGS
 	this->logFile->close();
 	delete this->logFile;
 
 	this->hexLog->close();
 	delete this->hexLog;
+#endif
 }
 
 void Decoder::Decode(ifstream &f, const string & fName)
@@ -70,7 +73,9 @@ uint8_t Decoder::getSmallestNumberOfBitsToEncode(const Encoding & encoding) cons
 void Decoder::decodeInputFile(ParsedEncodedFile &parsedFile, ifstream &encoded)
 {
 	HuffmanTree huff(parsedFile.getFrequencyTable());
+#if defined ENABLE_LOGS
 	huff.Log(huffTreeLogFileName);
+#endif
 	Encoding enc = huff.getEncoding(false);
 	string name = parsedFile.getFileName() + ".puff";
 	ofstream decoded(name, ios::out | ios::binary);
@@ -86,16 +91,27 @@ void Decoder::decompressCharacters(HuffmanTree &tree, ifstream &encoded, uint32_
 	uint64_t fileLength = end - pos;
 	encoded.seekg(pos);
 
-	vector<uint8_t> bits;
-	vector<uint8_t> bitsToCheck;
-	unsigned int i = 0;
-	uint64_t numberDecodedSoFar = 0;
+	uint32_t bitsToCheck = 0;
+
+	uint32_t numberDecodedSoFar = 0;
 	uint8_t largestNumberOfBitsToEncodeACharacter = getLargestNumberOfBitsToEncode(tree.getEncoding(false));
 	uint8_t smallestNumberOfBitsToEncodeACharacter = getSmallestNumberOfBitsToEncode(tree.getEncoding(false));
 
+	int numberOfBitsAvailable = 0;//from buffer
+	unsigned int numberOfBitsAccumulated = 0;
+	uint32_t bits = 0;
+	char nextByte;
+	uint8_t asciiChar = 0;
+
+
+#if defined ENABLE_LOGS
+	const string fileName = "C:\\Users\\Max\\Desktop\\Encoder\\numberOfCharsDecodedLog.txt";
+	ofstream decodedLog(fileName);
+#endif
+
+
 
 	CStopWatch watch;
-	
 	
 	while (numberDecodedSoFar < numberOfUncompressedChars)
 	{//for each byte in the file
@@ -103,53 +119,49 @@ void Decoder::decompressCharacters(HuffmanTree &tree, ifstream &encoded, uint32_
 		/*
 		Collect the next 8 bits from the file and add them on to the bits buffer
 		*/
-		if ((pos != end) && (bits.size() < largestNumberOfBitsToEncodeACharacter))
+		if ((pos != end) && (numberOfBitsAvailable == 0))
 		{
-			//TODO : Collect four bytes per read rather than just one
-
-
-
-
-
-			char *nextByte = new char;
-			encoded.read(nextByte, 1);
+			encoded.read(&nextByte, 1);
 			pos++;
-			vector<uint8_t> nextBytesBits = parseCharToBits(*nextByte);
-			for (unsigned int j = 0; j < 8; j++)
-				bits.push_back(nextBytesBits.at(j));
+			numberOfBitsAvailable = 8;
 
-
-			uint8_t logByte = *nextByte;
+			/*
+			Log stuff
+			*/
+#if defined ENABLE_LOGS
+			uint8_t logByte = nextByte;
 			*this->logFile << logByte;
 			*this->hexLog << dec << (this->lineCount)++ << ". 0x" << hex << int(logByte) << endl;
-			delete nextByte;
-			nextByte = nullptr;
+#endif
 		}
 
-		bitsToCheck.push_back(bits.at(i++));
+		bits <<= 1;
+		bits |= (nextByte & 0x80) >> 7;
+		nextByte <<= 1;
 
-		uint8_t asciiChar = 0;
-
-		if (bitsToCheck.size() < smallestNumberOfBitsToEncodeACharacter)
+		numberOfBitsAccumulated++;
+		numberOfBitsAvailable--;
+		
+		if (numberOfBitsAccumulated < smallestNumberOfBitsToEncodeACharacter)
 			continue;
-		bool successfullyDecoded = tree.Decode(bitsToCheck, &asciiChar);
+
+		bool successfullyDecoded = tree.Decode(bits, numberOfBitsAccumulated, &asciiChar);
 		if (successfullyDecoded)
 		{
-			//Erase however many bits that was from the front of the bit buffer, to free up space in memory as we go
-			bits.erase(bits.begin(), bits.begin() + bitsToCheck.size());
-			i = 0;
-			bitsToCheck.clear();
+			bits = 0;
+			numberOfBitsAccumulated = 0;
 			numberDecodedSoFar++;
 
-
-
-			//TODO : Collect four bytes before writing
-
-			char blah = asciiChar;
-			char *c = &blah;
-			decoded.write(c, 1);
+			decoded.write((char *)&asciiChar, 1);
 		}
 	}
+#if defined ENABLE_LOGS
+	decodedLog.close();
+#endif
+	cout << "Last byte read: " << nextByte << " (0x" << hex << (int)nextByte << ")" << endl;
+	cout << "Last char decoded: " << asciiChar << " (0x" << hex << (int)asciiChar << ")" << endl;
+	cout << "Total number of characters read: " << dec << numberDecodedSoFar << endl;
+	cout << "Total supposed to decode: " << dec << numberOfUncompressedChars << endl;
 }
 
 vector<uint8_t> Decoder::parseCharToBits(char c) const

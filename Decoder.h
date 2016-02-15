@@ -18,11 +18,13 @@ public:
 
 
 private:
+#if defined ENABLE_LOGS
 	const string huffTreeLogFileName = "C:\\Users\\Max\\Desktop\\Encoder\\decoderHuffTree.txt";
 	ofstream *logFile = nullptr;
 	const string bitsLogFileName = "C:\\Users\\Max\\Desktop\\Encoder\\decoderBitsLog.txt";
 	const string hexLogFileName = "C:\\Users\\Max\\Desktop\\Encoder\\decoderHexLog.txt";
 	ofstream *hexLog = nullptr;
+#endif
 
 	uint64_t lineCount = 0;
 

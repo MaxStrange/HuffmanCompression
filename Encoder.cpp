@@ -7,6 +7,7 @@
 #include "FVPair.h"
 
 #include "Encoder.h"
+#include "CStopWatch.h"
 
 
 using namespace std;
@@ -31,7 +32,7 @@ void Encoder::Encode(ifstream &f, const string &fName)
 	bool fileValid = createFrequencyTableFromFile(f, frequencyTable);
 	if (fileValid)
 	{
-		encodeFile(frequencyTable, f, fName);
+		encodeFile(frequencyTable, f, fName, frequencyTable.getTotal());
 	}
 	else
 	{
@@ -48,7 +49,9 @@ bool Encoder::createFrequencyTableFromFile(ifstream & f, FrequencyTable& frequen
 	try
 	{
 		frequencyTable = parseIntoFrequencyTable(f);
+#if defined ENABLE_LOGS
 		frequencyTable.Log(encoderFrequencyTableLogName);
+#endif
 		return true;
 	}
 	catch (exception ex)
@@ -57,19 +60,21 @@ bool Encoder::createFrequencyTableFromFile(ifstream & f, FrequencyTable& frequen
 	}
 }
 
-void Encoder::encodeFile(const FrequencyTable &frequencyTable, ifstream & f, const string & fName)
+void Encoder::encodeFile(const FrequencyTable &frequencyTable, ifstream & f, const string & fName, uint32_t numberOfCharsInFile)
 {
 	string encodedFileName = fName + ".huf";
 	ofstream encoded(encodedFileName, ios::out | ios::binary);
 
 	writeFrequencyTableToFile(frequencyTable, encoded);
-	writeNumberOfUncompressedCharsToFile(frequencyTable, encoded);
+	writeNumberOfUncompressedCharsToFile(numberOfCharsInFile, encoded);
 	writeCompressedCharsToFile(frequencyTable, encoded, f);
 	encoded.close();
 }
 
 FrequencyTable Encoder::parseIntoFrequencyTable(ifstream &f)
 {
+	uint32_t total = 0;
+
 	/*
 	Create an array of ascii char frequencies with the array index being the ascii char itself
 	*/
@@ -83,19 +88,17 @@ FrequencyTable Encoder::parseIntoFrequencyTable(ifstream &f)
 	f.seekg(0, f.end);
 	uint64_t fileLength = f.tellg();
 	f.seekg(0, f.beg);
+	uint8_t nextAsciiChar;
 	for (unsigned int i = 0; i < fileLength; i++)
 	{
-		char *nextAsciiChar = new char;
-		f.read(nextAsciiChar, 1);
-		
-		uint8_t c = *nextAsciiChar;
-		asciiCharFrequencies[c] += 1;
-
-		delete nextAsciiChar;
-		nextAsciiChar = nullptr;
+		nextAsciiChar = i;
+		f.read((char *)&nextAsciiChar, 1);
+		total++;
+		asciiCharFrequencies[nextAsciiChar] += 1;
 	}
 
 	FrequencyTable table(asciiCharFrequencies);
+	table.setTotal(total);
 
 	return table;
 }
@@ -105,26 +108,49 @@ void Encoder::writeCompressedCharsToFile(const FrequencyTable &frequencyTable, o
 	uint64_t numChars = 0;
 
 	HuffmanTree huff(frequencyTable);
+#if defined ENABLE_LOGS
 	huff.Log(huffTreeLogFileName);
+#endif
 	Encoding encoding = huff.getEncoding(true);
 	BufferWriter writer;
 
 	original.seekg(0, original.end);
 	uint64_t fileLength = original.tellg();
 	original.seekg(0, original.beg);
+	
+	CStopWatch watch;
+
+	char c;
+
+	double totalAllButWriterDuration = 0;
+	double totalWriterDuration = 0;
 	for (unsigned int i = 0; i < fileLength; i++)
 	{
+		watch.StartTimer();
+
 		numChars++;
-		char *c = new char;
-		original.read(c, 1);
-		uint8_t nextAsciiCharFromFile = *c;
-		delete c;
-		c = nullptr;
+		original.read(&c, 1);
+		uint8_t nextAsciiCharFromFile = c;
 
 		uint8_t numberOfBitsToWrite = encoding.encoding[nextAsciiCharFromFile].numberOfBits;
 		uint32_t bitsToWrite = encoding.encoding[nextAsciiCharFromFile].bits;
+		
+		watch.StopTimer();
+		totalAllButWriterDuration += watch.getElapsedTime();
+		
+		
+		watch.StartTimer();
 		writer.Write(numberOfBitsToWrite, bitsToWrite, encoded);		
+		watch.StopTimer();
+		totalWriterDuration += watch.getElapsedTime();
+		
 	}
+
+	cout << "Total all but writer: " << totalAllButWriterDuration << endl;
+	cout << "Total writer: " << totalWriterDuration << endl;
+	cout << "Average all but: " << (totalAllButWriterDuration / fileLength) << endl;
+	cout << "Average writer: " << (totalWriterDuration / fileLength) << endl;
+
 
 	writer.FlushBufferToFile(encoded);
 }
@@ -135,26 +161,34 @@ void Encoder::writeFrequencyTableToFile(const FrequencyTable &frequencyTable, os
 	{
 		uint8_t asciiChar = i;
 		uint16_t frequency = frequencyTable.getFrequency(asciiChar);
-		uint8_t numberOfDigitsInFrequency = frequencyTable.calculateNumberOfDigits(frequency);
+		//uint8_t numberOfDigitsInFrequency = frequencyTable.calculateNumberOfDigits(frequency);
+
 		
-		outStream << numberOfDigitsInFrequency;
-		outStream << frequency;//converts to ascii digits when printing - so 32 turns into '3''2' in the file
+		uint8_t frqUpperByte = (frequency & 0xFF00) >> 8;
+		uint8_t frqLowerByte = frequency & 0x00FF;
+		outStream.write((char *)&frqUpperByte, 1);
+		outStream.write((char *)&frqLowerByte, 1);
+
+		//outStream << numberOfDigitsInFrequency;
+		//outStream << frequency;//converts to ascii digits when printing - so 32 turns into '3''2' in the file
 	}
 }
 
-void Encoder::writeNumberOfUncompressedCharsToFile(const FrequencyTable &frequencyTable, ofstream & encoded) const
+void Encoder::writeNumberOfUncompressedCharsToFile(uint32_t numberOfUncompressedCharsInFile, ofstream & encoded) const
 {
-	uint32_t numberOfUncompressedCharsInFile = frequencyTable.getTotal();
-	uint8_t numberOfDigitsInUncompressedCharsInFile = frequencyTable.calculateNumberOfDigits(numberOfUncompressedCharsInFile);
+//	uint32_t numberOfUncompressedCharsInFile = frequencyTable.getTotal();
+	//uint8_t numberOfDigitsInUncompressedCharsInFile = frequencyTable.calculateNumberOfDigits(numberOfUncompressedCharsInFile);
 
-	//char *numDigs = new char;
-	//*numDigs = numberOfDigitsInUncompressedCharsInFile;
-	//encoded.write(numDigs, 1);
-	//delete numDigs;
-	//numDigs = nullptr;
+	uint8_t numMSB = ((0xFF000000 & numberOfUncompressedCharsInFile) >> 24);
+	uint8_t numByte1 = ((0x00FF0000 & numberOfUncompressedCharsInFile) >> 16);
+	uint8_t numByte2 = ((0x0000FF00 & numberOfUncompressedCharsInFile) >> 8);
+	uint8_t numLSB = (0x000000FF & numberOfUncompressedCharsInFile);
 
-	//vector<char> digits = frequencyTable.getDigits(numberOfUncompressedCharsInFile);
+	encoded.write((char *)&numMSB, 1);
+	encoded.write((char *)&numByte1, 1);
+	encoded.write((char *)&numByte2, 1);
+	encoded.write((char *)&numLSB, 1);
 
-	encoded << numberOfDigitsInUncompressedCharsInFile;
-	encoded << numberOfUncompressedCharsInFile;
+	//encoded << numberOfDigitsInUncompressedCharsInFile;
+	//encoded << numberOfUncompressedCharsInFile;
 }

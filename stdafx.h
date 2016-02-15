@@ -13,3 +13,4 @@
 
 
 // TODO: reference additional headers your program requires here
+//#define ENABLE_LOGS 1
