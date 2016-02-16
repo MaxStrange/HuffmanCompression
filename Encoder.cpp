@@ -16,7 +16,6 @@ Encoder::Encoder()
 {
 }
 
-
 Encoder::~Encoder()
 {
 }
@@ -118,7 +117,6 @@ void Encoder::writeCompressedCharsToFile(const FrequencyTable &frequencyTable, o
 	uint64_t fileLength = original.tellg();
 	original.seekg(0, original.beg);
 	
-	CStopWatch watch;
 
 	char c;
 
@@ -126,31 +124,15 @@ void Encoder::writeCompressedCharsToFile(const FrequencyTable &frequencyTable, o
 	double totalWriterDuration = 0;
 	for (unsigned int i = 0; i < fileLength; i++)
 	{
-		watch.StartTimer();
-
 		numChars++;
 		original.read(&c, 1);
 		uint8_t nextAsciiCharFromFile = c;
 
 		uint8_t numberOfBitsToWrite = encoding.encoding[nextAsciiCharFromFile].numberOfBits;
 		uint32_t bitsToWrite = encoding.encoding[nextAsciiCharFromFile].bits;
-		
-		watch.StopTimer();
-		totalAllButWriterDuration += watch.getElapsedTime();
-		
-		
-		watch.StartTimer();
-		writer.Write(numberOfBitsToWrite, bitsToWrite, encoded);		
-		watch.StopTimer();
-		totalWriterDuration += watch.getElapsedTime();
-		
+			
+		writer.Write(numberOfBitsToWrite, bitsToWrite, encoded);
 	}
-
-	cout << "Total all but writer: " << totalAllButWriterDuration << endl;
-	cout << "Total writer: " << totalWriterDuration << endl;
-	cout << "Average all but: " << (totalAllButWriterDuration / fileLength) << endl;
-	cout << "Average writer: " << (totalWriterDuration / fileLength) << endl;
-
 
 	writer.FlushBufferToFile(encoded);
 }
@@ -161,24 +143,18 @@ void Encoder::writeFrequencyTableToFile(const FrequencyTable &frequencyTable, os
 	{
 		uint8_t asciiChar = i;
 		uint16_t frequency = frequencyTable.getFrequency(asciiChar);
-		//uint8_t numberOfDigitsInFrequency = frequencyTable.calculateNumberOfDigits(frequency);
-
 		
 		uint8_t frqUpperByte = (frequency & 0xFF00) >> 8;
 		uint8_t frqLowerByte = frequency & 0x00FF;
+
 		outStream.write((char *)&frqUpperByte, 1);
 		outStream.write((char *)&frqLowerByte, 1);
 
-		//outStream << numberOfDigitsInFrequency;
-		//outStream << frequency;//converts to ascii digits when printing - so 32 turns into '3''2' in the file
 	}
 }
 
 void Encoder::writeNumberOfUncompressedCharsToFile(uint32_t numberOfUncompressedCharsInFile, ofstream & encoded) const
 {
-//	uint32_t numberOfUncompressedCharsInFile = frequencyTable.getTotal();
-	//uint8_t numberOfDigitsInUncompressedCharsInFile = frequencyTable.calculateNumberOfDigits(numberOfUncompressedCharsInFile);
-
 	uint8_t numMSB = ((0xFF000000 & numberOfUncompressedCharsInFile) >> 24);
 	uint8_t numByte1 = ((0x00FF0000 & numberOfUncompressedCharsInFile) >> 16);
 	uint8_t numByte2 = ((0x0000FF00 & numberOfUncompressedCharsInFile) >> 8);
@@ -188,7 +164,4 @@ void Encoder::writeNumberOfUncompressedCharsToFile(uint32_t numberOfUncompressed
 	encoded.write((char *)&numByte1, 1);
 	encoded.write((char *)&numByte2, 1);
 	encoded.write((char *)&numLSB, 1);
-
-	//encoded << numberOfDigitsInUncompressedCharsInFile;
-	//encoded << numberOfUncompressedCharsInFile;
 }

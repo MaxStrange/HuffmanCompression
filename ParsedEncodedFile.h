@@ -1,7 +1,9 @@
-#pragma once
+#ifndef _PARSED_ENCODED_FILE_H_
+#define _PARSED_ENCODED_FILE_H_
 
 #include <vector>
 #include <fstream>
+
 #include "FVPair.h"
 #include "FrequencyTable.h"
 
@@ -27,7 +29,8 @@ private:
 	const string decoderFrequencyTableLogName = "C:\\Users\\Max\\Desktop\\Encoder\\decoderFrqTbl.txt";
 #endif
 	FrequencyTable createFrequencyTable(const vector<string> &frequenciesAsStrings) const;
-	void parseFrequencyTable(ifstream &encoded, unsigned int &j);
 	void parseNumberOfChars(ifstream &encoded, unsigned int &j);
 	void parseTableFromFile(ifstream &encoded, unsigned int &j);
 };
+
+#endif

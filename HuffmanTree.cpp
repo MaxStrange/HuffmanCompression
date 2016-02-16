@@ -1,9 +1,10 @@
 #include "stdafx.h"
 
-#include "HuffmanTree.h"
 #include <fstream>
 #include <bitset>
 #include <iostream>
+
+#include "HuffmanTree.h"
 
 using namespace std;
 
@@ -60,12 +61,12 @@ HuffmanTree::~HuffmanTree()
 	destroySubtree(this->root);
 }
 
-const HuffmanTree& HuffmanTree::operator+(const HuffmanTree& rhs) const
+const HuffmanTree HuffmanTree::operator+(const HuffmanTree& rhs) const
 {
-	HuffmanTree *result = new HuffmanTree;
-	*result = *this;
-	*result += rhs;
-	return *result;
+	HuffmanTree result;
+	result = *this;
+	result += rhs;
+	return result;
 }
 
 HuffmanTree& HuffmanTree::operator+=(const HuffmanTree &other)

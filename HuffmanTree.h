@@ -1,4 +1,5 @@
-#pragma once
+#ifndef _HUFFMAN_TREE_H_
+#define _HUFFMAN_TREE_H_
 
 #include "stdafx.h"
 
@@ -21,7 +22,7 @@ public:
 	HuffmanTree(uint8_t rootValue, uint32_t rootWeight);
 	~HuffmanTree();
 
-	const HuffmanTree& operator+(const HuffmanTree &rhs) const;
+	const HuffmanTree operator+(const HuffmanTree &rhs) const;
 	HuffmanTree& operator+=(const HuffmanTree &other);
 	bool operator>(const HuffmanTree &other) const;
 	bool operator>=(const HuffmanTree &other) const;
@@ -64,3 +65,5 @@ private:
 	string name2 = "C:\\Users\\Max\\Desktop\\Encoder\\logDecoding.txt";
 #endif
 };
+
+#endif

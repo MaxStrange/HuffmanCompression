@@ -1,11 +1,14 @@
 #include "stdafx.h"
-#include "ParsedEncodedFile.h"
+
 #include <fstream>
 #include <iostream>
 #include <string>
+
 #include "FVPair.h"
-#include <string>
 #include "FrequencyTable.h"
+
+#include "ParsedEncodedFile.h"
+
 
 using namespace std;
 
@@ -37,7 +40,7 @@ bool ParsedEncodedFile::Parse(ifstream & encoded, const string &fName)
 	this->fileName = fName;
 
 	unsigned int j = 0;
-	parseFrequencyTable(encoded, j);
+	parseTableFromFile(encoded, j);
 #if defined ENABLE_LOGS
 	this->frequencyTable.Log(decoderFrequencyTableLogName);
 #endif
@@ -66,17 +69,6 @@ FrequencyTable ParsedEncodedFile::createFrequencyTable(const vector<string>& fre
 	return table;
 }
 
-void ParsedEncodedFile::parseFrequencyTable(ifstream &encoded, unsigned int &j)
-{
-	//parse the table out of the file
-	//vector<string> allFrequencies = parseTableFromFile(encoded, j);
-
-	parseTableFromFile(encoded, j);
-
-	//set up the frequency table object
-	//this->frequencyTable = createFrequencyTable(allFrequencies);
-}
-
 void ParsedEncodedFile::parseNumberOfChars(ifstream &encoded, unsigned int &j)
 {
 	//just read in the next four bytes and combine them into a uint32_t
@@ -88,33 +80,10 @@ void ParsedEncodedFile::parseNumberOfChars(ifstream &encoded, unsigned int &j)
 		uint32_t nextByteAs32Bit = (uint32_t)nextByte;
 		this->numberOfUncompressedChars |= (nextByteAs32Bit << (i * 8));
 	}
-
-
-	//char *numberOfDigitsInUncompressedChars = new char;
-	//encoded.read(numberOfDigitsInUncompressedChars, 1);
-
-	//unsigned int start = j;
-	//j++;
-	//string numberOfUncompressedChars;
-	//for (; j <= start + *numberOfDigitsInUncompressedChars; j++)
-	//{
-	//	char *nextDigit = new char;
-	//	encoded.read(nextDigit, 1);
-	//	numberOfUncompressedChars += *nextDigit;
-	//	delete nextDigit;
-	//	nextDigit = nullptr;
-	//}
-	//	
-	//this->numberOfUncompressedChars = stoi(numberOfUncompressedChars);
-
-	//delete numberOfDigitsInUncompressedChars;
-	//numberOfDigitsInUncompressedChars = nullptr;
 }
 
 void ParsedEncodedFile::parseTableFromFile(ifstream &encoded, unsigned int & j)
 {
-//	vector<string> allFrequenciesAsStrings;
-
 	j = 0;
 	for (int i = 0; i < 256; i++)
 	{
@@ -138,30 +107,4 @@ void ParsedEncodedFile::parseTableFromFile(ifstream &encoded, unsigned int & j)
 		fv.value = value;
 		this->frequencyTable.push_back(fv);
 	}
-
-
-	//j = 0;
-	//for (unsigned int i = 0; i < 256; i++)
-	//{
-	//	char *numberOfDigitsInNextFrequency = new char;
-	//	encoded.read(numberOfDigitsInNextFrequency, 1);
-
-	//	unsigned int start = j;
-	//	j++;
-	//	string frequency;
-	//	for (; j <= start + *numberOfDigitsInNextFrequency; j++)
-	//	{
-	//		char *nextChar = new char;
-	//		encoded.read(nextChar, 1);
-	//		frequency += *nextChar;
-	//		delete nextChar;
-	//		nextChar = nullptr;
-	//	}
-	//	allFrequenciesAsStrings.push_back(frequency);
-
-	//	delete numberOfDigitsInNextFrequency;
-	//	numberOfDigitsInNextFrequency = nullptr;
-	//}
-
-	//return allFrequenciesAsStrings;
 }

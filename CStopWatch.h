@@ -1,4 +1,8 @@
-#pragma once
+#ifndef _CSTOP_WATCH_H_
+#define _CSTOP_WATCH_H_
+
+#ifndef __linux
+
 
 #include <Windows.h>
 
@@ -23,3 +27,6 @@ private:
 	LARGE_INTEGER frequency;
 	double LItoSecs(LARGE_INTEGER &L);
 };
+
+#endif
+#endif _CSTOP_WATCH_H_

@@ -25,7 +25,7 @@ int main(int argc, char *argv[])
 	//else
 	//{
 	//	string name = argv[1];
-	//	f.open(name);
+	//	f.open(name, ios::in | ios::binary);
 	//	Encoder encoder;
 	//	encoder.Encode(f, name);
 	//}

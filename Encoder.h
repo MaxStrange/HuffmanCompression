@@ -1,4 +1,5 @@
-#pragma once
+#ifndef _ENCODER_H_
+#define _ENCODER_H_
 
 #include <vector>
 #include <string>
@@ -36,4 +37,6 @@ private:
 	void writeFrequencyTableToFile(const FrequencyTable &frequencyTable, ostream &encoded) const;
 	void writeNumberOfUncompressedCharsToFile(uint32_t numberOfUncompressedChars, ofstream &encoded) const;
 };
+
+#endif
 

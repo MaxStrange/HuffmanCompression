@@ -1,7 +1,9 @@
-#pragma once
+#ifndef _DECODER_H_
+#define _DECODER_H_
 
 #include <vector>
 #include <fstream>
+
 #include "HuffmanTree.h"
 #include "ParsedEncodedFile.h"
 #include "PriorityQueue.h"
@@ -35,3 +37,4 @@ private:
 	vector<uint8_t> parseCharToBits(char c) const;
 };
 
+#endif

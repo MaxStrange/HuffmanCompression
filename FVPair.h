@@ -1,10 +1,12 @@
-#pragma once
+#ifndef _FVPAIR_H_
+#define _FVPAIR_H_
+
 #include <iostream>
 
 struct FVPair
 {
 	uint16_t frequency = 0;
-	uint8_t value;
+	uint8_t value = 0;
 
 	bool operator>(const FVPair &other) const;
 	bool operator>=(const FVPair &other) const;
@@ -59,3 +61,5 @@ inline bool FVPair::operator==(const FVPair& other) const
 {
 	return ((frequency == other.frequency) && (value == other.value));
 }
+
+#endif

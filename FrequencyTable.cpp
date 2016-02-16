@@ -1,6 +1,8 @@
 #include "stdafx.h"
-#include "FrequencyTable.h"
+
 #include <fstream>
+
+#include "FrequencyTable.h"
 
 
 FrequencyTable::FrequencyTable()
@@ -39,11 +41,6 @@ uint16_t FrequencyTable::getFrequency(uint8_t asciiChar) const
 
 uint32_t FrequencyTable::getTotal() const
 {
-	//uint32_t total = 0;
-	//for (unsigned int i = 0; i < this->table.size(); i++)
-	//	total += this->table.at(i).frequency;
-//	return total;
-
 	return this->total;
 }
 

@@ -1,7 +1,6 @@
 #ifndef _HEAP_H_
 #define _HEAP_H_
 
-#pragma once
 
 #include <vector>
 #include <algorithm>

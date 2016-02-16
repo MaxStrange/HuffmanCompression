@@ -1,13 +1,17 @@
 #include "stdafx.h"
-#include "Decoder.h"
+
 #include <string>
 #include <vector>
 #include <fstream>
+
 #include "HuffmanTree.h"
 #include "ParsedEncodedFile.h"
 #include "PriorityQueue.h"
 #include "FVPair.h"
 #include "CStopWatch.h"
+
+#include "Decoder.h"
+
 
 using namespace std;
 
@@ -125,9 +129,6 @@ void Decoder::decompressCharacters(HuffmanTree &tree, ifstream &encoded, uint32_
 			pos++;
 			numberOfBitsAvailable = 8;
 
-			/*
-			Log stuff
-			*/
 #if defined ENABLE_LOGS
 			uint8_t logByte = nextByte;
 			*this->logFile << logByte;
@@ -158,10 +159,6 @@ void Decoder::decompressCharacters(HuffmanTree &tree, ifstream &encoded, uint32_
 #if defined ENABLE_LOGS
 	decodedLog.close();
 #endif
-	cout << "Last byte read: " << nextByte << " (0x" << hex << (int)nextByte << ")" << endl;
-	cout << "Last char decoded: " << asciiChar << " (0x" << hex << (int)asciiChar << ")" << endl;
-	cout << "Total number of characters read: " << dec << numberDecodedSoFar << endl;
-	cout << "Total supposed to decode: " << dec << numberOfUncompressedChars << endl;
 }
 
 vector<uint8_t> Decoder::parseCharToBits(char c) const

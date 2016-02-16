@@ -1,4 +1,5 @@
-#pragma once
+#ifndef _FREQUENCY_TABLE_H_
+#define _FREQUENCY_TABLE_H_
 
 #include <vector>
 
@@ -32,3 +33,4 @@ private:
 	uint32_t total = 0;
 };
 
+#endif
